@@ -95,6 +95,24 @@ if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
 	return
 }
 
+# A GitHub release tag points at whatever commit is currently HEAD. If
+# source changes (like this version bump) haven't been committed and
+# pushed yet, the tag ends up pointing at an OLDER commit whose plugin
+# header still shows the previous version -- the update checker (which
+# reads the version from the tagged commit's file content, not the ZIP
+# asset) would then see no version increase and report "up to date" even
+# though a newer ZIP is attached. Require a clean, pushed tree first.
+$dirty = git status --porcelain
+if ($dirty) {
+	throw "Working tree has uncommitted changes. Commit and push before releasing, so the release tag points at the code it actually ships:`n$dirty"
+}
+git fetch origin --quiet
+$localHead  = git rev-parse HEAD
+$remoteHead = git rev-parse '@{u}' 2>$null
+if ($remoteHead -and ($localHead -ne $remoteHead)) {
+	throw "Local HEAD ($localHead) differs from the pushed branch ($remoteHead). Push your commits before releasing."
+}
+
 [string]$tag = 'v' + $version
 Write-Host ( 'Publishing release ' + $tag + '...' )
 

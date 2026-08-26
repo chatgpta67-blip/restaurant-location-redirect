@@ -244,12 +244,12 @@ Once installed, the site checks that repo's Releases periodically (same schedule
 ### Cutting a new release (for whoever maintains the code)
 
 1. Make your changes, then bump the version in **two places** in `restaurant-location-redirect.php`: the `Version:` line in the header comment, and the `define( 'RLR_VERSION', '...' )` constant. They must match.
-2. Run the build/release script from the plugin folder:
+2. **Commit and push first**: `git add -A && git commit && git push`. This matters — a GitHub release tag points at whatever commit is current HEAD *at the moment the release is created*. The update checker reads the version from the tagged commit's file content (not the ZIP asset), so if you release before pushing, the tag points at stale code and sites will see "up to date" even though a newer ZIP is attached (`bin/build-zip.ps1` now refuses to run if the tree is uncommitted/unpushed, specifically to prevent this).
+3. Then run the build/release script from the plugin folder:
    ```powershell
    ./bin/build-zip.ps1
    ```
-   This stages only the production files (excluding `tests/`, `docs/`, `node_modules/`, etc. — the same list as `.distignore`), zips them, and publishes a GitHub Release tagged `vX.Y.Z` with that ZIP attached as a release asset. Sites running an older version will see the update notice within a few hours (WordPress's own update-check cron interval), or immediately via **Dashboard → Updates → Check Again**.
-3. Commit and push the source changes separately (`git add -A && git commit && git push`) so the repository's `main` branch and the tagged release stay in sync.
+   This stages only the production files (excluding `tests/`, `docs/`, `node_modules/`, etc. — the same list as `.distignore`), zips them, and publishes a GitHub Release tagged `vX.Y.Z` with that ZIP attached as a release asset. Sites running an older version will see the update notice within a few hours (WordPress's own update-check cron interval), or immediately via **Dashboard → Updates → Check Again** or the plugin row's **Check for updates** link.
 
 Run `./bin/build-zip.ps1 -SkipRelease` to build the ZIP locally without touching GitHub (e.g. for manual testing).
 
