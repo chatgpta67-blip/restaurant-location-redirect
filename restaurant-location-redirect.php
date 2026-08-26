@@ -31,6 +31,15 @@ define( 'RLR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'RLR_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 
 /**
+ * This plugin is not published on WordPress.org, so it ships its own
+ * "update available" notice sourced from GitHub Releases instead. See
+ * includes/class-rlr-updater.php. To point updates at a different repo
+ * (e.g. a private fork), change RLR_GITHUB_REPO_URL below and, for a
+ * private repo, define RLR_GITHUB_ACCESS_TOKEN (e.g. in wp-config.php).
+ */
+define( 'RLR_GITHUB_REPO_URL', 'https://github.com/chatgpta67-blip/restaurant-location-redirect' );
+
+/**
  * Dependency includes.
  *
  * Loaded in dependency order. This plugin intentionally avoids a class
@@ -49,6 +58,7 @@ require_once RLR_PLUGIN_DIR . 'includes/class-rlr-analytics.php';
 require_once RLR_PLUGIN_DIR . 'includes/class-rlr-rest.php';
 require_once RLR_PLUGIN_DIR . 'includes/class-rlr-admin.php';
 require_once RLR_PLUGIN_DIR . 'includes/class-rlr-public.php';
+require_once RLR_PLUGIN_DIR . 'includes/class-rlr-updater.php';
 require_once RLR_PLUGIN_DIR . 'includes/class-rlr-plugin.php';
 require_once RLR_PLUGIN_DIR . 'includes/class-rlr-activator.php';
 require_once RLR_PLUGIN_DIR . 'includes/class-rlr-deactivator.php';

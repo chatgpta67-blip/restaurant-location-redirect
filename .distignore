@@ -3,6 +3,8 @@
 .distignore
 node_modules
 tests
+bin
+build
 package.json
 package-lock.json
 phpunit.xml.dist

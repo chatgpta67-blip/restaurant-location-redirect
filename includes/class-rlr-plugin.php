@@ -39,6 +39,7 @@ class RLR_Plugin {
 		load_plugin_textdomain( 'restaurant-location-redirect', false, dirname( RLR_PLUGIN_BASENAME ) . '/languages' );
 
 		RLR_Analytics::init();
+		RLR_Updater::init();
 
 		add_action( 'rest_api_init', array( $this->rest, 'register_routes' ) );
 

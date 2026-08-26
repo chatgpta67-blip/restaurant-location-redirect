@@ -228,7 +228,33 @@ Enter these on the **Locations** tab (none are pre-seeded by the plugin — loca
 
 ---
 
-## 12. Plugin structure
+## 12. Getting updates
+
+This plugin is not published on WordPress.org, so it ships its own **self-hosted update checker** (`includes/class-rlr-updater.php`, powered by the vendored [Plugin Update Checker](https://github.com/YahnisElsts/plugin-update-checker) library) pointed at its GitHub repository:
+
+**https://github.com/chatgpta67-blip/restaurant-location-redirect**
+
+Once installed, the site checks that repo's Releases periodically (same schedule/UI as a WordPress.org plugin) and shows a normal **"There is a new version of Restaurant Location Order Redirect available"** notice on the Plugins page, with a one-click **Update Now** — no manual re-upload needed. Because the repo is public, no access token is required.
+
+### Cutting a new release (for whoever maintains the code)
+
+1. Make your changes, then bump the version in **two places** in `restaurant-location-redirect.php`: the `Version:` line in the header comment, and the `define( 'RLR_VERSION', '...' )` constant. They must match.
+2. Run the build/release script from the plugin folder:
+   ```powershell
+   ./bin/build-zip.ps1
+   ```
+   This stages only the production files (excluding `tests/`, `docs/`, `node_modules/`, etc. — the same list as `.distignore`), zips them, and publishes a GitHub Release tagged `vX.Y.Z` with that ZIP attached as a release asset. Sites running an older version will see the update notice within a few hours (WordPress's own update-check cron interval), or immediately via **Dashboard → Updates → Check Again**.
+3. Commit and push the source changes separately (`git add -A && git commit && git push`) so the repository's `main` branch and the tagged release stay in sync.
+
+Run `./bin/build-zip.ps1 -SkipRelease` to build the ZIP locally without touching GitHub (e.g. for manual testing).
+
+### If you'd rather host it elsewhere
+
+Change the `RLR_GITHUB_REPO_URL` constant near the top of `restaurant-location-redirect.php` to point at a different GitHub repository (e.g. a private fork). For a private repo, also define `RLR_GITHUB_ACCESS_TOKEN` (a GitHub personal access token with `repo` read scope) — ideally in `wp-config.php`, not in the plugin file itself, so it isn't committed to version control.
+
+---
+
+## 13. Plugin structure
 
 ```
 restaurant-location-redirect/
@@ -250,10 +276,13 @@ restaurant-location-redirect/
 │   ├── class-rlr-rest.php              /locations, /detect, /track REST endpoints
 │   ├── class-rlr-admin.php             Settings page, tabs, CRUD form handlers
 │   ├── class-rlr-public.php            Asset enqueue, modal render, shortcodes
-│   └── class-rlr-helpers.php           IP/device/URL/referrer utilities
+│   ├── class-rlr-updater.php           GitHub-hosted "update available" notice
+│   ├── class-rlr-helpers.php           IP/device/URL/referrer utilities
+│   └── libs/plugin-update-checker/     Vendored 3rd-party library (MIT license)
 ├── admin/{css,js,views}/               Admin UI assets + tab templates
 ├── public/{css,js}/                    Frontend modal styling + RlrController
 ├── templates/location-modal.php        Visitor-agnostic modal markup
+├── bin/build-zip.ps1                   Build + publish a release ZIP (see §12)
 ├── tests/php/                          PHPUnit (WP core test suite)
 ├── tests/js/                           Jest + jsdom
 └── docs/README.md                      This document
