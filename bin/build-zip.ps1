@@ -49,7 +49,41 @@ foreach ($f in $files) {
 }
 
 $zipPath = Join-Path $buildDir 'restaurant-location-redirect.zip'
-Compress-Archive -Path $target -DestinationPath $zipPath -CompressionLevel Optimal
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+
+# Deliberately building the zip entry-by-entry instead of using
+# Compress-Archive or ZipFile.CreateFromDirectory: both write backslash
+# "\" path separators into zip entries on this platform (a long-standing
+# .NET Framework behavior on Windows), instead of the ZIP-spec-required
+# forward slash "/". Windows tools tolerate that, but Linux hosts (nearly
+# all WordPress hosting) do not -- unzip there treats each entry as one
+# flat, oddly-named file instead of creating subdirectories, so WordPress
+# reports "Plugin file does not exist" after an apparently successful
+# install. Writing entry names ourselves guarantees forward slashes.
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+$zipStream = [System.IO.File]::Open( $zipPath, [System.IO.FileMode]::Create )
+$archive   = New-Object System.IO.Compression.ZipArchive( $zipStream, [System.IO.Compression.ZipArchiveMode]::Create )
+
+try {
+	$targetFullPath = (Resolve-Path $target).Path
+	Get-ChildItem -Path $target -Recurse -File | ForEach-Object {
+		$relative = $_.FullName.Substring( $targetFullPath.Length + 1 ) -replace '\\', '/'
+		$entryName = 'restaurant-location-redirect/' + $relative
+		$entry = $archive.CreateEntry( $entryName, [System.IO.Compression.CompressionLevel]::Optimal )
+		$entryStream = $entry.Open()
+		try {
+			$fileBytes = [System.IO.File]::ReadAllBytes( $_.FullName )
+			$entryStream.Write( $fileBytes, 0, $fileBytes.Length )
+		} finally {
+			$entryStream.Dispose()
+		}
+	}
+} finally {
+	$archive.Dispose()
+	$zipStream.Dispose()
+}
 Write-Host "Built: $zipPath"
 
 if ($SkipRelease) {

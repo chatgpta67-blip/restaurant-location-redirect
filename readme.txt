@@ -4,7 +4,7 @@ Tags: restaurant, geolocation, redirect, multi-location, elementor
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ No. All HTML is static and identical for every visitor. Location detection and b
 The visitor sees the "Select Your Location" popup and can choose manually. The rest of the site is unaffected.
 
 == Changelog ==
+
+= 1.0.1 =
+* Removed unused translation files from the bundled update-checker library to reduce the plugin's file count (some hosts fail to fully extract/move very large numbers of small files during install).
 
 = 1.0.0 =
 * Initial release.
