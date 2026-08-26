@@ -1,0 +1,161 @@
+/**
+ * Restaurant Location Order Redirect — public styles.
+ * Deliberately minimal and namespaced (.rlr-*) so it can be safely
+ * overridden by the active theme or Elementor's custom CSS.
+ */
+
+.rlr-modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba( 17, 17, 17, 0.6 );
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 100000;
+	padding: 20px;
+}
+
+.rlr-modal-overlay[hidden] {
+	display: none;
+}
+
+.rlr-modal {
+	background: #fff;
+	color: #1a1a1a;
+	border-radius: 10px;
+	max-width: 420px;
+	width: 100%;
+	padding: 32px 28px 28px;
+	position: relative;
+	box-shadow: 0 20px 60px rgba( 0, 0, 0, 0.3 );
+	max-height: 90vh;
+	overflow-y: auto;
+}
+
+.rlr-modal-close {
+	position: absolute;
+	top: 12px;
+	right: 14px;
+	background: none;
+	border: none;
+	font-size: 24px;
+	line-height: 1;
+	cursor: pointer;
+	color: #666;
+	padding: 4px 8px;
+}
+
+.rlr-modal-close:hover {
+	color: #111;
+}
+
+.rlr-modal-title {
+	margin: 0 0 6px;
+	font-size: 1.4em;
+	font-weight: 700;
+}
+
+.rlr-modal-subtitle {
+	margin: 0 0 20px;
+	color: #555;
+	font-size: 0.95em;
+}
+
+.rlr-modal-notice {
+	background: #fff4e5;
+	border: 1px solid #f0c36d;
+	color: #7a4b00;
+	padding: 10px 12px;
+	border-radius: 6px;
+	font-size: 0.9em;
+	margin-bottom: 16px;
+}
+
+.rlr-modal-notice[hidden] {
+	display: none;
+}
+
+.rlr-location-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.rlr-location-option {
+	width: 100%;
+	text-align: left;
+	background: #f7f7f8;
+	border: 1px solid #e2e2e4;
+	border-radius: 8px;
+	padding: 14px 16px;
+	cursor: pointer;
+	font-size: 1em;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.rlr-location-option:hover,
+.rlr-location-option:focus-visible {
+	background: #ececee;
+	border-color: #c7c7cc;
+	outline: none;
+}
+
+.rlr-location-name {
+	font-weight: 600;
+}
+
+.rlr-location-meta {
+	font-size: 0.85em;
+	color: #666;
+}
+
+.rlr-location-empty {
+	color: #777;
+	font-style: italic;
+}
+
+body.rlr-modal-open {
+	overflow: hidden;
+}
+
+/* Change-location / switcher controls (rendered via shortcode or theme markup). */
+.rlr-change-location,
+.rlr-location-switcher {
+	background: none;
+	border: 1px solid currentColor;
+	border-radius: 6px;
+	padding: 6px 12px;
+	cursor: pointer;
+	font: inherit;
+}
+
+.rlr-location-switcher-current {
+	font-weight: 600;
+}
+
+/* Admin/debug-only panel, only rendered when the current user is an
+   administrator with debug mode enabled — see class-rlr-public.php. */
+.rlr-debug-panel {
+	position: fixed;
+	bottom: 12px;
+	right: 12px;
+	background: rgba( 20, 20, 20, 0.92 );
+	color: #eaeaea;
+	font: 12px/1.5 monospace;
+	padding: 10px 14px;
+	border-radius: 8px;
+	max-width: 320px;
+	z-index: 100001;
+	box-shadow: 0 8px 24px rgba( 0, 0, 0, 0.35 );
+}
+
+.rlr-debug-panel div {
+	white-space: pre-wrap;
+	word-break: break-word;
+}

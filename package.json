@@ -1,0 +1,19 @@
+{
+	"name": "restaurant-location-redirect",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Dev-only tooling for the Restaurant Location Order Redirect WordPress plugin (not shipped in the plugin ZIP).",
+	"scripts": {
+		"test": "jest"
+	},
+	"devDependencies": {
+		"jest": "^29.7.0",
+		"jest-environment-jsdom": "^29.7.0"
+	},
+	"jest": {
+		"testEnvironment": "jsdom",
+		"testMatch": [
+			"<rootDir>/tests/js/**/*.test.js"
+		]
+	}
+}

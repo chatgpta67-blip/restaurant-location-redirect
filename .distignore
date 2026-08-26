@@ -1,0 +1,11 @@
+.git
+.gitignore
+.distignore
+node_modules
+tests
+package.json
+package-lock.json
+phpunit.xml.dist
+docs
+*.log
+.DS_Store

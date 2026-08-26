@@ -1,0 +1,92 @@
+.rlr-admin-wrap .rlr-locations-table td,
+.rlr-admin-wrap .rlr-locations-table th {
+	vertical-align: middle;
+}
+
+.rlr-status {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 0.85em;
+	font-weight: 600;
+}
+
+.rlr-status-active {
+	background: #e6f4ea;
+	color: #1e7e34;
+}
+
+.rlr-status-inactive {
+	background: #f4e6e6;
+	color: #a02020;
+}
+
+.rlr-stat-cards {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin: 16px 0 24px;
+}
+
+.rlr-stat-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	padding: 16px 20px;
+	min-width: 160px;
+	display: flex;
+	flex-direction: column;
+}
+
+.rlr-stat-number {
+	font-size: 1.8em;
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.rlr-stat-label {
+	color: #666;
+	font-size: 0.85em;
+	margin-top: 4px;
+}
+
+.rlr-analytics-filter {
+	margin: 12px 0 20px;
+	display: flex;
+	align-items: end;
+	gap: 16px;
+}
+
+.rlr-analytics-filter label {
+	display: flex;
+	flex-direction: column;
+	font-size: 0.85em;
+	gap: 4px;
+}
+
+.rlr-bar {
+	height: 14px;
+	background: linear-gradient( 90deg, #2271b1, #72aee6 );
+	border-radius: 3px;
+	min-width: 2px;
+}
+
+.rlr-doc-list li,
+.rlr-doc-list dd {
+	margin-bottom: 10px;
+	max-width: 900px;
+}
+
+.rlr-doc-list dt {
+	font-weight: 600;
+	margin-top: 14px;
+}
+
+.rlr-debug-output {
+	background: #1e1e1e;
+	color: #d4d4d4;
+	padding: 14px;
+	border-radius: 6px;
+	max-width: 700px;
+	overflow-x: auto;
+}
