@@ -111,6 +111,41 @@ class Test_RLR_REST extends WP_UnitTestCase {
 		$this->assertTrue( $data['success'] );
 	}
 
+	public function test_simulate_endpoint_requires_admin_capability() {
+		wp_set_current_user( 0 );
+
+		$request = new WP_REST_Request( 'POST', '/rlr/v1/simulate' );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'city' => 'Phoenix', 'state' => 'Arizona', 'country' => 'United States', 'country_code' => 'US' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 401, $response->get_status() );
+	}
+
+	public function test_simulate_endpoint_matches_for_admin_without_real_ip_lookup() {
+		$admin_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_id );
+
+		RLR_Location_Manager::create(
+			array( 'name' => 'Arizona', 'city' => 'Phoenix', 'state' => 'Arizona', 'country' => 'United States', 'country_code' => 'US', 'order_url' => 'https://example.com/arizona-order' )
+		);
+
+		$request = new WP_REST_Request( 'POST', '/rlr/v1/simulate' );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'city' => 'Phoenix', 'state' => 'Arizona', 'country' => 'United States', 'country_code' => 'US' ) ) );
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertTrue( $data['matched'] );
+		$this->assertSame( 'Arizona', $data['location']['name'] );
+		$this->assertSame( 'high', $data['confidence'] );
+
+		wp_set_current_user( 0 );
+	}
+
 	public function test_track_endpoint_noop_when_analytics_disabled() {
 		$settings = RLR_Settings::get_all();
 		$settings['analytics_mode'] = 'disabled';

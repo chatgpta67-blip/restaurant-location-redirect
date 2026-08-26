@@ -154,6 +154,11 @@ This fires whenever an event is *recorded* (i.e., only when analytics storage is
 11. **Mobile** — repeat the above on Android/iOS, Wi-Fi and cellular; the flow is identical since it's plain JS + REST.
 12. **VPN** — repeat detection through a VPN across several countries, including one with no configured location, and document that results are approximate (see the in-admin Debug & Help documentation and §9 below).
 
+**Testing from a location with no configured restaurant (e.g. verifying US/UK locations while physically elsewhere):** two options, no VPN required for the first one:
+- **Debug & Help → Simulate a Detected Location** — type in (or use the quick-fill buttons for) a city/state/country and it runs the exact same matching hierarchy and confidence-threshold logic used in production, with zero external API calls. This is the fastest way to verify "does Phoenix/Arizona/US correctly resolve to the Arizona location at High confidence" from anywhere in the world. It only exercises the *matching* logic, not the real geolocation provider call itself.
+- To test the **full pipeline** including the actual IP geolocation API call, use a VPN exit point in the target region and check **Debug & Help → Run Detection Test** (or just load the site) — this is the only way to verify the real provider (ip-api.com/ipinfo.io) returns usable data for that region.
+- Note that from a genuinely unconfigured region (no matching location), the correct and expected behavior is the "Select Your Location" popup appearing — that itself is a pass for Test 6, not a bug.
+
 ### Automated tests
 
 **PHP (PHPUnit, using the standard WP core test suite):**

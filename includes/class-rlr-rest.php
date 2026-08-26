@@ -6,6 +6,9 @@
  *   GET  /rlr/v1/locations  Public list of active locations (cacheable).
  *   GET  /rlr/v1/detect     Visitor-specific geolocation + match (never cache).
  *   POST /rlr/v1/track      Analytics event ingestion (nonce required).
+ *   POST /rlr/v1/simulate   Admin-only: run the matcher against arbitrary
+ *                           city/state/country input, with no external API
+ *                           call — for testing matching logic from anywhere.
  *
  * @package Restaurant_Location_Redirect
  */
@@ -55,6 +58,18 @@ class RLR_REST {
 						'type'     => 'string',
 					),
 				),
+			)
+		);
+
+		register_rest_route(
+			self::NAMESPACE_V1,
+			'/simulate',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'simulate_match' ),
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
 			)
 		);
 	}
@@ -175,6 +190,63 @@ class RLR_REST {
 		}
 
 		return $this->no_cache_response( $response_body );
+	}
+
+	/**
+	 * POST /simulate — admin-only diagnostic tool. Runs the same matching
+	 * hierarchy as /detect against admin-supplied city/state/country/lat/lng
+	 * values instead of a real IP lookup, so the matching logic (which
+	 * locations win at which confidence) can be verified from anywhere in
+	 * the world without a VPN and without spending API quota.
+	 *
+	 * Requires `manage_options`; never reachable by ordinary visitors.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response
+	 */
+	public function simulate_match( WP_REST_Request $request ) {
+		$params = $request->get_json_params();
+		if ( ! is_array( $params ) ) {
+			$params = $request->get_params();
+		}
+
+		$detected = array(
+			'city'         => isset( $params['city'] ) ? sanitize_text_field( $params['city'] ) : '',
+			'state'        => isset( $params['state'] ) ? sanitize_text_field( $params['state'] ) : '',
+			'country'      => isset( $params['country'] ) ? sanitize_text_field( $params['country'] ) : '',
+			'country_code' => isset( $params['country_code'] ) ? sanitize_text_field( $params['country_code'] ) : '',
+			'latitude'     => ( isset( $params['latitude'] ) && is_numeric( $params['latitude'] ) ) ? (float) $params['latitude'] : null,
+			'longitude'    => ( isset( $params['longitude'] ) && is_numeric( $params['longitude'] ) ) ? (float) $params['longitude'] : null,
+		);
+
+		$settings         = RLR_Settings::get_all();
+		$active_locations = RLR_Location_Manager::get_active();
+
+		$match = RLR_Matcher::match(
+			$detected,
+			$active_locations,
+			array(
+				'proximity_enabled'   => ! empty( $settings['proximity_enabled'] ),
+				'proximity_radius_km' => (float) $settings['proximity_radius_km'],
+			)
+		);
+
+		$meets_threshold = RLR_Matcher::meets_threshold( $match['confidence'], $settings['confidence_threshold'] );
+
+		return new WP_REST_Response(
+			array(
+				'success'      => true,
+				'input'        => $detected,
+				'matched'      => (bool) ( $match['location'] && $meets_threshold ),
+				'location'     => $match['location'] ? RLR_Location_Manager::to_public_array( $match['location'] ) : null,
+				'confidence'   => $match['confidence'],
+				'match_method' => $match['method'],
+				'candidates'   => $match['candidates'],
+				'reason'       => $match['reason'],
+				'threshold'    => $settings['confidence_threshold'],
+				'meets_threshold' => $meets_threshold,
+			)
+		);
 	}
 
 	/**

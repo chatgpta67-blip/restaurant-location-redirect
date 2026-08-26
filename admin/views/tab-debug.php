@@ -24,6 +24,44 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 <hr />
 
+<h2><?php esc_html_e( 'Simulate a Detected Location', 'restaurant-location-redirect' ); ?></h2>
+<p>
+	<?php esc_html_e( 'Tests the matching logic (city → state → country → proximity, and your confidence threshold) against any city/state/country you type in — without calling the real geolocation API and without needing to actually be in that location or use a VPN. Useful for verifying your configured locations match correctly from anywhere in the world.', 'restaurant-location-redirect' ); ?>
+</p>
+<table class="form-table rlr-simulate-form" role="presentation">
+	<tr>
+		<th scope="row"><label for="rlr-sim-city"><?php esc_html_e( 'City', 'restaurant-location-redirect' ); ?></label></th>
+		<td><input type="text" id="rlr-sim-city" class="regular-text" placeholder="Phoenix" /></td>
+	</tr>
+	<tr>
+		<th scope="row"><label for="rlr-sim-state"><?php esc_html_e( 'State / Region', 'restaurant-location-redirect' ); ?></label></th>
+		<td><input type="text" id="rlr-sim-state" class="regular-text" placeholder="Arizona" /></td>
+	</tr>
+	<tr>
+		<th scope="row"><label for="rlr-sim-country"><?php esc_html_e( 'Country / Code', 'restaurant-location-redirect' ); ?></label></th>
+		<td>
+			<input type="text" id="rlr-sim-country" class="regular-text" placeholder="United States" />
+			<input type="text" id="rlr-sim-country-code" class="small-text" maxlength="2" placeholder="US" style="text-transform:uppercase" />
+		</td>
+	</tr>
+	<tr>
+		<th scope="row"><label for="rlr-sim-lat"><?php esc_html_e( 'Latitude / Longitude', 'restaurant-location-redirect' ); ?></label></th>
+		<td>
+			<input type="text" id="rlr-sim-lat" class="small-text" placeholder="33.4484" />
+			<input type="text" id="rlr-sim-lng" class="small-text" placeholder="-112.0740" />
+			<p class="description"><?php esc_html_e( 'Optional — only used if Proximity Matching is enabled on the Geolocation tab.', 'restaurant-location-redirect' ); ?></p>
+		</td>
+	</tr>
+</table>
+<p>
+	<button type="button" class="button button-primary" id="rlr-simulate-run"><?php esc_html_e( 'Simulate', 'restaurant-location-redirect' ); ?></button>
+	<button type="button" class="button" data-rlr-sim-example="phoenix"><?php esc_html_e( 'Fill: Phoenix, AZ, US', 'restaurant-location-redirect' ); ?></button>
+	<button type="button" class="button" data-rlr-sim-example="manchester"><?php esc_html_e( 'Fill: Manchester, England, GB', 'restaurant-location-redirect' ); ?></button>
+</p>
+<pre id="rlr-simulate-output" class="rlr-debug-output" hidden></pre>
+
+<hr />
+
 <h2><?php esc_html_e( 'Data & Privacy', 'restaurant-location-redirect' ); ?></h2>
 <ul class="rlr-doc-list">
 	<li><?php esc_html_e( 'IP addresses are used only transiently to perform a geolocation lookup, and are never permanently stored. A one-way, salted hash of the IP is kept briefly (as a WordPress transient) purely for result caching and abuse-rate-limiting, then expires automatically.', 'restaurant-location-redirect' ); ?></li>
@@ -62,6 +100,58 @@ if ( ! defined( 'ABSPATH' ) ) {
 			.then( function ( r ) { return r.json(); } )
 			.then( function ( data ) { out.textContent = JSON.stringify( data, null, 2 ); } )
 			.catch( function ( e ) { out.textContent = 'Error: ' + e; } );
+	} );
+} )();
+
+( function () {
+	if ( typeof rlrAdminConfig === 'undefined' ) {
+		return;
+	}
+
+	var examples = {
+		phoenix: { city: 'Phoenix', state: 'Arizona', country: 'United States', code: 'US' },
+		manchester: { city: 'Manchester', state: 'England', country: 'United Kingdom', code: 'GB' }
+	};
+
+	document.querySelectorAll( '[data-rlr-sim-example]' ).forEach( function ( el ) {
+		el.addEventListener( 'click', function () {
+			var e = examples[ el.getAttribute( 'data-rlr-sim-example' ) ];
+			if ( ! e ) { return; }
+			document.getElementById( 'rlr-sim-city' ).value = e.city;
+			document.getElementById( 'rlr-sim-state' ).value = e.state;
+			document.getElementById( 'rlr-sim-country' ).value = e.country;
+			document.getElementById( 'rlr-sim-country-code' ).value = e.code;
+		} );
+	} );
+
+	var runBtn = document.getElementById( 'rlr-simulate-run' );
+	var simOut = document.getElementById( 'rlr-simulate-output' );
+	if ( ! runBtn ) {
+		return;
+	}
+
+	runBtn.addEventListener( 'click', function () {
+		simOut.hidden = false;
+		simOut.textContent = '<?php echo esc_js( __( 'Running…', 'restaurant-location-redirect' ) ); ?>';
+
+		var payload = {
+			city: document.getElementById( 'rlr-sim-city' ).value,
+			state: document.getElementById( 'rlr-sim-state' ).value,
+			country: document.getElementById( 'rlr-sim-country' ).value,
+			country_code: document.getElementById( 'rlr-sim-country-code' ).value,
+			latitude: document.getElementById( 'rlr-sim-lat' ).value,
+			longitude: document.getElementById( 'rlr-sim-lng' ).value
+		};
+
+		fetch( rlrAdminConfig.restUrl + '/simulate', {
+			method: 'POST',
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': rlrAdminConfig.nonce },
+			body: JSON.stringify( payload )
+		} )
+			.then( function ( r ) { return r.json(); } )
+			.then( function ( data ) { simOut.textContent = JSON.stringify( data, null, 2 ); } )
+			.catch( function ( e ) { simOut.textContent = 'Error: ' + e; } );
 	} );
 } )();
 </script>
