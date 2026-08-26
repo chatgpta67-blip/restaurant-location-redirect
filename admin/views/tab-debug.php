@@ -87,6 +87,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 </dl>
 
 <script>
+/*
+ * Deferred to DOMContentLoaded: wp_localize_script() prints the
+ * rlrAdminConfig object as a footer script (by design, so it loads after
+ * the page body), but this inline block sits earlier in the page body and
+ * would otherwise run — and silently bail out because rlrAdminConfig
+ * doesn't exist yet — before that footer script ever executes. Waiting
+ * for DOMContentLoaded guarantees every script earlier in the document,
+ * footer scripts included, has already run.
+ */
+document.addEventListener( 'DOMContentLoaded', function () {
+
 ( function () {
 	var btn = document.getElementById( 'rlr-test-detect' );
 	var out = document.getElementById( 'rlr-test-detect-output' );
@@ -154,4 +165,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 			.catch( function ( e ) { simOut.textContent = 'Error: ' + e; } );
 	} );
 } )();
+
+} );
 </script>
