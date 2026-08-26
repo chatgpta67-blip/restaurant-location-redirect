@@ -4,7 +4,7 @@ Tags: restaurant, geolocation, redirect, multi-location, elementor
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ No. All HTML is static and identical for every visitor. Location detection and b
 The visitor sees the "Select Your Location" popup and can choose manually. The rest of the site is unaffected.
 
 == Changelog ==
+
+= 1.0.4 =
+* Fixed: the admin debug block (detected IP/country/state/city) never appeared from /detect, even with Debug Mode enabled and while logged in as an administrator. The request was missing the X-WP-Nonce header, so WordPress's REST cookie authentication treated it as an anonymous visitor regardless of the active login session. Fixed in both the Debug & Help "Run Detection Test" button and the frontend debug panel.
 
 = 1.0.3 =
 * Fixed: the "Run Detection Test" and "Simulate a Detected Location" buttons on the Debug & Help tab silently did nothing. Their inline script ran before wp_localize_script's footer-printed config existed, so it exited before attaching any click handlers. Deferred to DOMContentLoaded. (This bug affected Run Detection Test since 1.0.0.)

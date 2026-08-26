@@ -524,7 +524,15 @@
 			return;
 		}
 
-		win.fetch( this.config.restUrl + '/detect', { credentials: 'same-origin' } )
+		win.fetch( this.config.restUrl + '/detect', {
+			credentials: 'same-origin',
+			// The X-WP-Nonce header is what lets WordPress's REST API
+			// recognize the currently logged-in user on a cookie-authenticated
+			// request; without it the request is treated as anonymous
+			// regardless of the session cookie, and admin-only debug data
+			// would never be returned even with Debug Mode enabled.
+			headers: { 'X-WP-Nonce': this.config.nonce },
+		} )
 			.then( function ( res ) {
 				if ( ! res.ok ) {
 					throw new Error( 'HTTP ' + res.status );

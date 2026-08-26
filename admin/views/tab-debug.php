@@ -107,7 +107,14 @@ document.addEventListener( 'DOMContentLoaded', function () {
 	btn.addEventListener( 'click', function () {
 		out.hidden = false;
 		out.textContent = '<?php echo esc_js( __( 'Running…', 'restaurant-location-redirect' ) ); ?>';
-		fetch( rlrAdminConfig.restUrl + '/detect', { credentials: 'same-origin' } )
+		// X-WP-Nonce is required for WordPress to recognize this admin's
+		// login session on the request -- without it, /detect treats the
+		// request as anonymous and never includes the debug block below,
+		// even with Debug Mode enabled.
+		fetch( rlrAdminConfig.restUrl + '/detect', {
+			credentials: 'same-origin',
+			headers: { 'X-WP-Nonce': rlrAdminConfig.nonce }
+		} )
 			.then( function ( r ) { return r.json(); } )
 			.then( function ( data ) { out.textContent = JSON.stringify( data, null, 2 ); } )
 			.catch( function ( e ) { out.textContent = 'Error: ' + e; } );

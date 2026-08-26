@@ -202,6 +202,19 @@ describe( 'RlrController integration behavior', () => {
 		expect( controller.getSavedLocation() ).toBeNull();
 	} );
 
+	test( 'runDetection sends the X-WP-Nonce header, so WordPress recognizes a logged-in admin and returns debug data', () => {
+		// Regression test: without this header, WP's REST cookie auth treats
+		// the request as anonymous regardless of the session cookie, so an
+		// admin with Debug Mode enabled would never see the debug block.
+		const controller = new mod.RlrController( config );
+		controller.runDetection();
+
+		expect( global.fetch ).toHaveBeenCalledWith(
+			expect.stringContaining( '/detect' ),
+			expect.objectContaining( { headers: expect.objectContaining( { 'X-WP-Nonce': config.nonce } ) } )
+		);
+	} );
+
 	test( 'order button click is tracked only after a location has been applied', () => {
 		const controller = new mod.RlrController( config );
 		controller.bindEvents();
