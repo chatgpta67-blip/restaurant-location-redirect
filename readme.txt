@@ -4,7 +4,7 @@ Tags: restaurant, geolocation, redirect, multi-location, elementor
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ No. All HTML is static and identical for every visitor. Location detection and b
 The visitor sees the "Select Your Location" popup and can choose manually. The rest of the site is unaffected.
 
 == Changelog ==
+
+= 1.0.6 =
+* Fixed: a critical bug in 1.0.5's Order Now button state-code badge could freeze the page for every visitor. The badge was rewritten on every reapplication (including reapplications triggered by the plugin's own "watch for new buttons" observer), and each rewrite counted as page activity that triggered the same observer again, looping indefinitely and pegging the browser tab. Reapplying an unchanged badge is now a true no-op. Sites running 1.0.5 should update immediately.
 
 = 1.0.5 =
 * Added: matched Order Now buttons now show a short state-code badge next to the label (e.g. "Order Now (AZ)"), derived automatically from the location's State field. Recognizes standard US state/territory names and already-2-letter codes; a state value that isn't recognized (e.g. a non-US region) simply shows no badge.

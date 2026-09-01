@@ -142,12 +142,26 @@
 
 			var badge = el.querySelector( '.rlr-location-badge' );
 			if ( code ) {
+				var desired = ' (' + code + ')';
 				if ( ! badge ) {
+					// Set text before insertion: a detached node's textContent
+					// isn't a DOM mutation, so appending it is a single mutation
+					// record instead of two.
 					badge = doc.createElement( 'span' );
 					badge.className = 'rlr-location-badge';
+					badge.textContent = desired;
 					el.appendChild( badge );
+				} else if ( badge.textContent !== desired ) {
+					// Only write if the value actually changed: this function
+					// is re-invoked by the MutationObserver in
+					// watchForNewButtons() on every DOM change anywhere on the
+					// page, and assigning textContent unconditionally -- even
+					// to an unchanged value -- creates a new Text node, which
+					// is itself an observed childList mutation. That fed the
+					// observer its own output and looped forever, hanging the
+					// page for every visitor.
+					badge.textContent = desired;
 				}
-				badge.textContent = ' (' + code + ')';
 			} else if ( badge ) {
 				badge.parentNode.removeChild( badge );
 			}

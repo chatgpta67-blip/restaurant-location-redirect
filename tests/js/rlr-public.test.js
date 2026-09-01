@@ -148,6 +148,27 @@ describe( 'applyLocationToButtons (Test 8: multiple buttons)', () => {
 			expect( el.querySelectorAll( '.rlr-location-badge' ).length ).toBe( 0 );
 		} );
 	} );
+
+	test( 'regression: reapplying the same location does not touch the badge DOM node', () => {
+		// watchForNewButtons() re-invokes applyLocationToButtons on every
+		// MutationObserver childList event anywhere on the page. If this
+		// function writes to the DOM even when nothing changed, that write
+		// is itself an observed mutation, which re-fires the observer,
+		// which writes again -- an infinite loop that hangs the page for
+		// every visitor. This asserts the actual invariant that prevents
+		// that: repeat calls with an unchanged location produce zero DOM
+		// mutations (same Text node identity, not just the same string).
+		const az = { orderUrl: 'https://example.com/arizona-order', slug: 'arizona', state: 'Arizona' };
+		mod.applyLocationToButtons( document, '.order-now, .order-now-button', az );
+
+		const badge = document.querySelector( '.rlr-location-badge' );
+		const textNode = badge.firstChild;
+
+		mod.applyLocationToButtons( document, '.order-now, .order-now-button', az );
+
+		expect( document.querySelector( '.rlr-location-badge' ) ).toBe( badge );
+		expect( badge.firstChild ).toBe( textNode );
+	} );
 } );
 
 describe( 'RlrController integration behavior', () => {
