@@ -78,6 +78,23 @@ describe( 'pure helpers', () => {
 		expect( a.length ).toBeGreaterThan( 0 );
 		expect( a ).not.toBe( b );
 	} );
+
+	test( 'stateAbbreviation resolves full US state names case-insensitively', () => {
+		expect( mod.stateAbbreviation( 'Arizona' ) ).toBe( 'AZ' );
+		expect( mod.stateAbbreviation( 'arizona' ) ).toBe( 'AZ' );
+		expect( mod.stateAbbreviation( '  New York  ' ) ).toBe( 'NY' );
+	} );
+
+	test( 'stateAbbreviation passes an already-2-letter code through uppercased', () => {
+		expect( mod.stateAbbreviation( 'az' ) ).toBe( 'AZ' );
+		expect( mod.stateAbbreviation( 'AZ' ) ).toBe( 'AZ' );
+	} );
+
+	test( 'stateAbbreviation returns empty for unrecognized or missing input', () => {
+		expect( mod.stateAbbreviation( 'Ontario' ) ).toBe( '' );
+		expect( mod.stateAbbreviation( '' ) ).toBe( '' );
+		expect( mod.stateAbbreviation( undefined ) ).toBe( '' );
+	} );
 } );
 
 describe( 'applyLocationToButtons (Test 8: multiple buttons)', () => {
@@ -111,6 +128,25 @@ describe( 'applyLocationToButtons (Test 8: multiple buttons)', () => {
 
 	test( 'missing orderUrl is a no-op', () => {
 		expect( mod.applyLocationToButtons( document, '.order-now', {} ) ).toBe( 0 );
+	} );
+
+	test( 'appends a state-code badge to each button and updates it in place on reapply', () => {
+		const az = { orderUrl: 'https://example.com/arizona-order', slug: 'arizona', state: 'Arizona' };
+		mod.applyLocationToButtons( document, '.order-now, .order-now-button', az );
+
+		const buttons = document.querySelectorAll( '.order-now, .order-now-button' );
+		buttons.forEach( ( el ) => {
+			expect( el.querySelectorAll( '.rlr-location-badge' ).length ).toBe( 1 );
+			expect( el.querySelector( '.rlr-location-badge' ).textContent ).toBe( ' (AZ)' );
+		} );
+
+		const manchester = { orderUrl: 'https://example.com/manchester-order', slug: 'manchester', state: 'Greater Manchester' };
+		mod.applyLocationToButtons( document, '.order-now, .order-now-button', manchester );
+
+		buttons.forEach( ( el ) => {
+			// Unrecognized (non-US) state text: badge is removed, not left stale.
+			expect( el.querySelectorAll( '.rlr-location-badge' ).length ).toBe( 0 );
+		} );
 	} );
 } );
 

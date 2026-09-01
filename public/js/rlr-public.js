@@ -131,12 +131,27 @@
 			return 0; // Invalid selector — fail silently rather than throw.
 		}
 
+		var code = stateAbbreviation( location.state );
+
 		var count = 0;
 		for ( var i = 0; i < elements.length; i++ ) {
 			var el = elements[ i ];
 			el.setAttribute( 'href', location.orderUrl );
 			el.setAttribute( 'data-rlr-applied', '1' );
 			el.setAttribute( 'data-rlr-location-slug', location.slug || '' );
+
+			var badge = el.querySelector( '.rlr-location-badge' );
+			if ( code ) {
+				if ( ! badge ) {
+					badge = doc.createElement( 'span' );
+					badge.className = 'rlr-location-badge';
+					el.appendChild( badge );
+				}
+				badge.textContent = ' (' + code + ')';
+			} else if ( badge ) {
+				badge.parentNode.removeChild( badge );
+			}
+
 			count++;
 		}
 		return count;
@@ -183,6 +198,52 @@
 		return 'rlr-' + Date.now().toString( 36 ) + '-' + Math.random().toString( 36 ).slice( 2 );
 	}
 
+	/**
+	 * US state/territory full name (lowercased) to 2-letter code, for the
+	 * order-button location badge. Only US names are recognized; a state
+	 * value for any other country simply produces no badge.
+	 *
+	 * @type {Object<string,string>}
+	 */
+	var US_STATE_ABBREVIATIONS = {
+		'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR',
+		'california': 'CA', 'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE',
+		'florida': 'FL', 'georgia': 'GA', 'hawaii': 'HI', 'idaho': 'ID',
+		'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA', 'kansas': 'KS',
+		'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+		'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS',
+		'missouri': 'MO', 'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV',
+		'new hampshire': 'NH', 'new jersey': 'NJ', 'new mexico': 'NM', 'new york': 'NY',
+		'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH', 'oklahoma': 'OK',
+		'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+		'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT',
+		'vermont': 'VT', 'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV',
+		'wisconsin': 'WI', 'wyoming': 'WY',
+		'district of columbia': 'DC', 'washington dc': 'DC', 'washington d.c.': 'DC',
+		'puerto rico': 'PR', 'guam': 'GU', 'american samoa': 'AS',
+		'u.s. virgin islands': 'VI', 'virgin islands': 'VI',
+		'northern mariana islands': 'MP'
+	};
+
+	/**
+	 * Resolve a location's free-text state/region into a short badge code
+	 * (e.g. "Arizona" -> "AZ"). Already-2-letter input passes through
+	 * uppercased. Unrecognized/empty input yields '' (no badge shown).
+	 *
+	 * @param {string} stateText
+	 * @return {string}
+	 */
+	function stateAbbreviation( stateText ) {
+		var raw = ( stateText || '' ).trim();
+		if ( ! raw ) {
+			return '';
+		}
+		if ( /^[A-Za-z]{2}$/.test( raw ) ) {
+			return raw.toUpperCase();
+		}
+		return US_STATE_ABBREVIATIONS[ raw.toLowerCase() ] || '';
+	}
+
 	var pureHelpers = {
 		isExpired: isExpired,
 		findLocationBySlug: findLocationBySlug,
@@ -190,6 +251,7 @@
 		applyLocationToButtons: applyLocationToButtons,
 		categorizeReferrer: categorizeReferrer,
 		generateSessionId: generateSessionId,
+		stateAbbreviation: stateAbbreviation,
 	};
 
 	// In a non-browser (test) context, just expose the pure helpers and stop.
@@ -315,7 +377,7 @@
 			if ( record && record.slug && ! isExpired( record.ts, duration, Date.now() ) ) {
 				var loc = findLocationBySlug( this.locations, record.slug );
 				if ( loc ) {
-					return { id: loc.id, slug: loc.slug, name: loc.name, orderUrl: loc.orderUrl, source: record.source || 'manual' };
+					return { id: loc.id, slug: loc.slug, name: loc.name, orderUrl: loc.orderUrl, state: loc.state, source: record.source || 'manual' };
 				}
 			} else if ( record ) {
 				lsRemove( STORAGE_KEY_LS ); // Expired or now-invalid (location removed/deactivated).
@@ -327,7 +389,7 @@
 			if ( slug ) {
 				var locByCookie = findLocationBySlug( this.locations, slug );
 				if ( locByCookie ) {
-					return { id: locByCookie.id, slug: locByCookie.slug, name: locByCookie.name, orderUrl: locByCookie.orderUrl, source: 'manual' };
+					return { id: locByCookie.id, slug: locByCookie.slug, name: locByCookie.name, orderUrl: locByCookie.orderUrl, state: locByCookie.state, source: 'manual' };
 				}
 				deleteCookie( STORAGE_KEY_COOKIE );
 			}
@@ -366,6 +428,7 @@
 			slug: location.slug,
 			name: location.name,
 			orderUrl: location.orderUrl,
+			state: location.state,
 			matchMethod: matchMethod || 'manual',
 			confidence: confidence || 'high',
 		};
@@ -639,12 +702,14 @@
 			var option = evt.target.closest && evt.target.closest( '.rlr-location-option' );
 			if ( option ) {
 				evt.preventDefault();
-				self.selectLocation( {
+				var optionSlug = option.getAttribute( 'data-rlr-location-slug' );
+				var picked = findLocationBySlug( self.locations, optionSlug ) || {
 					id: parseInt( option.getAttribute( 'data-rlr-location-id' ), 10 ),
-					slug: option.getAttribute( 'data-rlr-location-slug' ),
+					slug: optionSlug,
 					name: option.getAttribute( 'data-rlr-location-name' ),
 					orderUrl: option.getAttribute( 'data-rlr-location-url' ),
-				} );
+				};
+				self.selectLocation( picked );
 				return;
 			}
 

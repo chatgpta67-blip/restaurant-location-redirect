@@ -139,6 +139,12 @@ body.rlr-modal-open {
 	font-weight: 600;
 }
 
+/* Short state-code badge appended to matched Order Now buttons, e.g. "(AZ)". */
+.rlr-location-badge {
+	font-weight: 600;
+	opacity: 0.85;
+}
+
 /* Admin/debug-only panel, only rendered when the current user is an
    administrator with debug mode enabled — see class-rlr-public.php. */
 .rlr-debug-panel {
