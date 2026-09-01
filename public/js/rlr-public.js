@@ -447,8 +447,7 @@
 			confidence: confidence || 'high',
 		};
 
-		var selector = ( this.config.settings && this.config.settings.buttonSelector ) || '.order-now';
-		var updated = applyLocationToButtons( doc, selector, location );
+		var updated = applyLocationToButtons( doc, this.getButtonSelector(), location );
 		this.log( 'Applied location "' + location.name + '" to ' + updated + ' button(s).' );
 
 		var labels = doc.querySelectorAll( '[data-rlr-current-location]' );
@@ -465,6 +464,18 @@
 	};
 
 	/**
+	 * The admin-configured selector for theme/Elementor buttons, plus the
+	 * plugin's own [rlr_order_button] shortcode markup, which is always
+	 * updated regardless of that setting.
+	 *
+	 * @return {string}
+	 */
+	RlrController.prototype.getButtonSelector = function () {
+		var configured = ( this.config.settings && this.config.settings.buttonSelector ) || '.order-now';
+		return configured + ', .rlr-order-button';
+	};
+
+	/**
 	 * Re-apply the current location to any newly-added buttons (Elementor
 	 * lazy content, AJAX-loaded sections, etc.) without re-tracking events.
 	 */
@@ -477,8 +488,7 @@
 			if ( ! self.currentLocation ) {
 				return;
 			}
-			var selector = ( self.config.settings && self.config.settings.buttonSelector ) || '.order-now';
-			applyLocationToButtons( doc, selector, self.currentLocation );
+			applyLocationToButtons( doc, self.getButtonSelector(), self.currentLocation );
 		} );
 		this.observer.observe( doc.body, { childList: true, subtree: true } );
 	};
@@ -724,6 +734,21 @@
 					orderUrl: option.getAttribute( 'data-rlr-location-url' ),
 				};
 				self.selectLocation( picked );
+				return;
+			}
+
+			var pluginOrderButton = evt.target.closest && evt.target.closest( '.rlr-order-button' );
+			if ( pluginOrderButton ) {
+				if ( ! pluginOrderButton.getAttribute( 'data-rlr-applied' ) ) {
+					// No location known yet (detection was inconclusive, or the
+					// visitor dismissed the popup without picking) — this
+					// button has nowhere to send them, so open the picker
+					// instead of navigating to its placeholder href.
+					evt.preventDefault();
+					self.openModal( pluginOrderButton );
+					return;
+				}
+				self.trackEvent( 'order_click' );
 				return;
 			}
 

@@ -175,12 +175,13 @@ describe( 'RlrController integration behavior', () => {
 	let mod;
 	let config;
 
-	const arizona = { id: 1, slug: 'arizona', name: 'Arizona', orderUrl: 'https://example.com/arizona-order' };
+	const arizona = { id: 1, slug: 'arizona', name: 'Arizona', orderUrl: 'https://example.com/arizona-order', state: 'Arizona' };
 	const manchester = { id: 2, slug: 'manchester', name: 'Manchester', orderUrl: 'https://example.com/manchester-order' };
 
 	beforeEach( () => {
 		document.body.innerHTML = `
 			<a class="order-now" href="#">Order Now</a>
+			<a class="rlr-order-button" href="#" data-rlr-order-button="1"><span class="rlr-order-button-text">Order Now</span></a>
 			<div id="rlr-modal-overlay" class="rlr-modal-overlay" hidden aria-hidden="true">
 				<div id="rlr-modal">
 					<button data-rlr-close-modal>close</button>
@@ -284,6 +285,45 @@ describe( 'RlrController integration behavior', () => {
 		global.fetch.mockClear();
 
 		button.dispatchEvent( new window.MouseEvent( 'click', { bubbles: true } ) );
+		expect( global.fetch ).toHaveBeenCalledWith(
+			expect.stringContaining( '/track' ),
+			expect.objectContaining( { body: expect.stringContaining( '"event":"order_click"' ) } )
+		);
+	} );
+
+	test( '[rlr_order_button]: gets href + state badge even though buttonSelector only targets .order-now', () => {
+		const controller = new mod.RlrController( config );
+		controller.applyLocation( arizona, 'manual', 'high' );
+
+		const pluginButton = document.querySelector( '.rlr-order-button' );
+		expect( pluginButton.getAttribute( 'href' ) ).toBe( arizona.orderUrl );
+		expect( pluginButton.querySelector( '.rlr-location-badge' ).textContent ).toBe( ' (AZ)' );
+	} );
+
+	test( '[rlr_order_button]: clicking it before a location is known opens the popup instead of navigating', () => {
+		const controller = new mod.RlrController( config );
+		controller.bindEvents();
+
+		const pluginButton = document.querySelector( '.rlr-order-button' );
+		const evt = new window.MouseEvent( 'click', { bubbles: true, cancelable: true } );
+		pluginButton.dispatchEvent( evt );
+
+		expect( evt.defaultPrevented ).toBe( true );
+		expect( controller.modalOverlay.hidden ).toBe( false );
+	} );
+
+	test( '[rlr_order_button]: clicking it after a location is known tracks order_click and lets navigation proceed', () => {
+		const controller = new mod.RlrController( config );
+		controller.bindEvents();
+		controller.applyLocation( arizona, 'manual', 'high' );
+		global.fetch.mockClear();
+
+		const pluginButton = document.querySelector( '.rlr-order-button' );
+		const evt = new window.MouseEvent( 'click', { bubbles: true, cancelable: true } );
+		pluginButton.dispatchEvent( evt );
+
+		expect( evt.defaultPrevented ).toBe( false );
+		expect( controller.modalOverlay.hidden ).toBe( true );
 		expect( global.fetch ).toHaveBeenCalledWith(
 			expect.stringContaining( '/track' ),
 			expect.objectContaining( { body: expect.stringContaining( '"event":"order_click"' ) } )

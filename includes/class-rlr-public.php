@@ -25,6 +25,7 @@ class RLR_Public {
 		add_action( 'wp_footer', array( $this, 'render_modal' ) );
 		add_shortcode( 'rlr_change_location', array( $this, 'shortcode_change_location' ) );
 		add_shortcode( 'rlr_location_switcher', array( $this, 'shortcode_location_switcher' ) );
+		add_shortcode( 'rlr_order_button', array( $this, 'shortcode_order_button' ) );
 	}
 
 	/**
@@ -129,5 +130,39 @@ class RLR_Public {
 			. '<span class="rlr-location-switcher-current" data-rlr-current-location>' . esc_html__( 'Select', 'restaurant-location-redirect' ) . '</span> '
 			. '<span class="rlr-location-switcher-arrow" aria-hidden="true">&#9662;</span>'
 			. '</button>';
+	}
+
+	/**
+	 * [rlr_order_button text="Order Now"]
+	 *
+	 * A plugin-rendered, plugin-styled Order Now button, as an alternative
+	 * to matching an existing theme/Elementor button via the configured CSS
+	 * selector -- this way the state-code badge and layout are never at the
+	 * mercy of an unknown theme's fixed-width/overflow CSS.
+	 *
+	 * Starts pointing nowhere. JS fills in the href and state badge once a
+	 * location is known (auto-detected or manually picked); until then,
+	 * clicking it opens the location popup instead of navigating.
+	 *
+	 * @param array $atts Shortcode attributes.
+	 * @return string
+	 */
+	public function shortcode_order_button( $atts ) {
+		$atts = shortcode_atts(
+			array(
+				'text'  => __( 'Order Now', 'restaurant-location-redirect' ),
+				'class' => '',
+			),
+			$atts,
+			'rlr_order_button'
+		);
+
+		$classes = trim( 'rlr-order-button ' . $atts['class'] );
+
+		return sprintf(
+			'<a href="#" class="%s" data-rlr-order-button="1"><span class="rlr-order-button-text">%s</span></a>',
+			esc_attr( $classes ),
+			esc_html( $atts['text'] )
+		);
 	}
 }

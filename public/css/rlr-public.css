@@ -139,6 +139,23 @@ body.rlr-modal-open {
 	font-weight: 600;
 }
 
+/* Plugin-rendered Order Now button (see the [rlr_order_button] shortcode).
+   Deliberately auto-width with no overflow/fixed-width constraints, so the
+   state-code badge always has room to display -- unlike matching an
+   existing theme button, whose own CSS (e.g. overflow:hidden on a
+   fixed-width pill button) can clip it, especially on mobile. */
+.rlr-order-button {
+	display: inline-block;
+	text-decoration: none;
+	background: none;
+	border: 1px solid currentColor;
+	border-radius: 6px;
+	padding: 10px 20px;
+	cursor: pointer;
+	font: inherit;
+	white-space: nowrap;
+}
+
 /* Short state-code badge appended to matched Order Now buttons, e.g. "(AZ)". */
 .rlr-location-badge {
 	font-weight: 600;
