@@ -4,7 +4,7 @@ Tags: restaurant, geolocation, redirect, multi-location, elementor
 Requires at least: 5.8
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 1.0.8
+Stable tag: 1.0.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ No. All HTML is static and identical for every visitor. Location detection and b
 The visitor sees the "Select Your Location" popup and can choose manually. The rest of the site is unaffected.
 
 == Changelog ==
+
+= 1.0.9 =
+* Added: creating, editing, deleting, or activating/deactivating a location now automatically purges LiteSpeed Cache (if installed), so a newly-added or edited location shows up immediately instead of waiting for the next natural cache expiry. The active-locations list is rendered directly into page HTML for cache-safety (identical for every visitor, so it's safe behind full-page caching), which also means a page cached before a change stays stale until purged -- this closes that gap for LiteSpeed specifically. Harmless no-op on any other host/caching setup.
 
 = 1.0.8 =
 * Changed: [rlr_order_button] now renders two separate, independently-clickable elements instead of one combined string -- a small outlined "state" pill (click it to change location, showing e.g. "AZ") sitting next to a filled Order Now button. The pair sits in a flex-wrap container so it wraps onto a second line in a tight header instead of overflowing it.

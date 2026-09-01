@@ -3,7 +3,7 @@
  * Plugin Name:       Restaurant Location Order Redirect
  * Plugin URI:         https://example.com/plugins/restaurant-location-redirect
  * Description:        Detects a visitor's likely restaurant location (via saved preference or IP geolocation) and dynamically points "Order Now" buttons to the correct location-specific ordering URL. Includes a manual location selector, admin-managed locations, and privacy-conscious analytics.
- * Version:            1.0.8
+ * Version:            1.0.9
  * Requires at least:  5.8
  * Requires PHP:       7.4
  * Author:              Digi-Pro
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Core plugin constants.
  */
-define( 'RLR_VERSION', '1.0.8' );
+define( 'RLR_VERSION', '1.0.9' );
 define( 'RLR_DB_VERSION', '1.0.0' );
 define( 'RLR_PLUGIN_FILE', __FILE__ );
 define( 'RLR_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );

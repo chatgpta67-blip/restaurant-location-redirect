@@ -263,6 +263,8 @@ class RLR_Location_Manager {
 			return new WP_Error( 'rlr_db_error', __( 'Could not save the location. Please try again.', 'restaurant-location-redirect' ) );
 		}
 
+		self::purge_page_cache();
+
 		return (int) $wpdb->insert_id;
 	}
 
@@ -307,7 +309,11 @@ class RLR_Location_Manager {
 			array( '%d' )
 		);
 
-		return false !== $updated;
+		$success = false !== $updated;
+		if ( $success ) {
+			self::purge_page_cache();
+		}
+		return $success;
 	}
 
 	/**
@@ -322,7 +328,11 @@ class RLR_Location_Manager {
 		if ( ! $id ) {
 			return false;
 		}
-		return false !== $wpdb->delete( self::table(), array( 'id' => $id ), array( '%d' ) );
+		$success = false !== $wpdb->delete( self::table(), array( 'id' => $id ), array( '%d' ) );
+		if ( $success ) {
+			self::purge_page_cache();
+		}
+		return $success;
 	}
 
 	/**
@@ -340,7 +350,7 @@ class RLR_Location_Manager {
 		global $wpdb;
 		$new_status = 'active' === $location['status'] ? 'inactive' : 'active';
 
-		return false !== $wpdb->update(
+		$success = false !== $wpdb->update(
 			self::table(),
 			array(
 				'status'     => $new_status,
@@ -350,6 +360,23 @@ class RLR_Location_Manager {
 			array( '%s', '%s' ),
 			array( '%d' )
 		);
+		if ( $success ) {
+			self::purge_page_cache();
+		}
+		return $success;
+	}
+
+	/**
+	 * Notify LiteSpeed Cache (if installed/active) that previously-cached
+	 * pages may now show stale location data -- the active-locations list
+	 * is rendered directly into page HTML for cache-safety (identical for
+	 * every visitor; see RLR_Public::render_modal() and enqueue_assets()),
+	 * which means it's only as fresh as the last time a given page was
+	 * cached. A no-op when LiteSpeed Cache isn't present: do_action() on a
+	 * hook with no registered listeners is harmless.
+	 */
+	private static function purge_page_cache() {
+		do_action( 'litespeed_purge_all' );
 	}
 
 	/**

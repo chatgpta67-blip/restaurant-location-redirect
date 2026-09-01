@@ -115,4 +115,50 @@ class Test_RLR_Location_Manager extends WP_UnitTestCase {
 		$this->assertArrayNotHasKey( 'sort_order', $public );
 		$this->assertSame( 'https://example.com/arizona-order', $public['orderUrl'] );
 	}
+
+	/**
+	 * Regression: the active-locations list is rendered directly into page
+	 * HTML (for cache-safety -- identical for every visitor), which means a
+	 * page cached before a location changes keeps showing the old list
+	 * until purged. This locks in that every successful write purges
+	 * LiteSpeed Cache (a harmless no-op when it isn't installed), so a
+	 * newly-added/edited location shows up without a manual cache purge.
+	 */
+	public function test_successful_writes_purge_litespeed_cache() {
+		$purge_count = 0;
+		$count_purge = function () use ( &$purge_count ) {
+			++$purge_count;
+		};
+		add_action( 'litespeed_purge_all', $count_purge );
+
+		$id = RLR_Location_Manager::create(
+			array( 'name' => 'Chennai', 'city' => 'Chennai', 'state' => 'Tamil Nadu', 'country' => 'India', 'order_url' => 'https://example.com/chennai' )
+		);
+		$this->assertSame( 1, $purge_count );
+
+		RLR_Location_Manager::update( $id, array( 'name' => 'Chennai HQ', 'city' => 'Chennai', 'country' => 'India', 'order_url' => 'https://example.com/chennai' ) );
+		$this->assertSame( 2, $purge_count );
+
+		RLR_Location_Manager::toggle_status( $id );
+		$this->assertSame( 3, $purge_count );
+
+		RLR_Location_Manager::delete( $id );
+		$this->assertSame( 4, $purge_count );
+
+		remove_action( 'litespeed_purge_all', $count_purge );
+	}
+
+	public function test_failed_create_does_not_purge_cache() {
+		$purge_count = 0;
+		$count_purge = function () use ( &$purge_count ) {
+			++$purge_count;
+		};
+		add_action( 'litespeed_purge_all', $count_purge );
+
+		RLR_Location_Manager::create( array( 'name' => 'Missing Fields', 'city' => '', 'country' => '', 'order_url' => '' ) );
+
+		$this->assertSame( 0, $purge_count );
+
+		remove_action( 'litespeed_purge_all', $count_purge );
+	}
 }
