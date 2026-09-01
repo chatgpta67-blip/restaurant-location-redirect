@@ -181,7 +181,12 @@ describe( 'RlrController integration behavior', () => {
 	beforeEach( () => {
 		document.body.innerHTML = `
 			<a class="order-now" href="#">Order Now</a>
-			<a class="rlr-order-button" href="#" data-rlr-order-button="1"><span class="rlr-order-button-text">Order Now</span></a>
+			<span class="rlr-order-group">
+				<button type="button" class="rlr-order-state" data-rlr-change-location="1">
+					<span class="rlr-order-state-label" data-rlr-current-location-code>Select Location</span>
+				</button>
+				<a class="rlr-order-button" href="#" data-rlr-order-button="1"><span class="rlr-order-button-text">Order Now</span></a>
+			</span>
 			<div id="rlr-modal-overlay" class="rlr-modal-overlay" hidden aria-hidden="true">
 				<div id="rlr-modal">
 					<button data-rlr-close-modal>close</button>
@@ -291,13 +296,27 @@ describe( 'RlrController integration behavior', () => {
 		);
 	} );
 
-	test( '[rlr_order_button]: gets href + state badge even though buttonSelector only targets .order-now', () => {
+	test( '[rlr_order_button]: gets href even though buttonSelector only targets .order-now, and the state shows as a separate pill (not an inline badge)', () => {
 		const controller = new mod.RlrController( config );
 		controller.applyLocation( arizona, 'manual', 'high' );
 
 		const pluginButton = document.querySelector( '.rlr-order-button' );
 		expect( pluginButton.getAttribute( 'href' ) ).toBe( arizona.orderUrl );
-		expect( pluginButton.querySelector( '.rlr-location-badge' ).textContent ).toBe( ' (AZ)' );
+		expect( pluginButton.querySelector( '.rlr-location-badge' ) ).toBeNull();
+
+		const stateLabel = document.querySelector( '[data-rlr-current-location-code]' );
+		expect( stateLabel.textContent ).toBe( 'AZ' );
+	} );
+
+	test( '[rlr_order_button]: clicking the separate state pill opens the popup to change location', () => {
+		const controller = new mod.RlrController( config );
+		controller.bindEvents();
+		controller.applyLocation( arizona, 'manual', 'high' );
+
+		const statePill = document.querySelector( '.rlr-order-state' );
+		statePill.dispatchEvent( new window.MouseEvent( 'click', { bubbles: true, cancelable: true } ) );
+
+		expect( controller.modalOverlay.hidden ).toBe( false );
 	} );
 
 	test( '[rlr_order_button]: clicking it before a location is known opens the popup instead of navigating', () => {

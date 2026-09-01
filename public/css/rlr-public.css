@@ -126,34 +126,58 @@ body.rlr-modal-open {
 
 /* Change-location / switcher controls (rendered via shortcode or theme markup). */
 .rlr-change-location,
-.rlr-location-switcher {
+.rlr-location-switcher,
+.rlr-order-state {
 	background: none;
 	border: 1px solid currentColor;
 	border-radius: 6px;
 	padding: 6px 12px;
 	cursor: pointer;
 	font: inherit;
+	white-space: nowrap;
 }
 
 .rlr-location-switcher-current {
 	font-weight: 600;
 }
 
+.rlr-order-state-label {
+	font-weight: 600;
+}
+
+/* Wraps [rlr_order_button]'s state pill + Order Now button. flex-wrap lets
+   the pair drop to a second line instead of overflowing a tight container
+   (e.g. a header) -- deliberately not one long unbreakable string. */
+.rlr-order-group {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	max-width: 100%;
+}
+
 /* Plugin-rendered Order Now button (see the [rlr_order_button] shortcode).
-   Deliberately auto-width with no overflow/fixed-width constraints, so the
-   state-code badge always has room to display -- unlike matching an
-   existing theme button, whose own CSS (e.g. overflow:hidden on a
-   fixed-width pill button) can clip it, especially on mobile. */
+   Deliberately auto-width with no fixed-width constraints of its own --
+   overflow is instead handled by .rlr-order-group wrapping -- so it's never
+   at the mercy of an unknown theme's header layout. */
 .rlr-order-button {
 	display: inline-block;
 	text-decoration: none;
-	background: none;
-	border: 1px solid currentColor;
+	background: #1a1a1a;
+	color: #fff;
+	border: 1px solid #1a1a1a;
 	border-radius: 6px;
 	padding: 10px 20px;
 	cursor: pointer;
 	font: inherit;
 	white-space: nowrap;
+}
+
+.rlr-order-button:hover,
+.rlr-order-button:focus-visible {
+	background: #333333;
+	border-color: #333333;
+	color: #fff;
 }
 
 /* Short state-code badge appended to matched Order Now buttons, e.g. "(AZ)". */

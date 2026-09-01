@@ -137,12 +137,16 @@ class RLR_Public {
 	 *
 	 * A plugin-rendered, plugin-styled Order Now button, as an alternative
 	 * to matching an existing theme/Elementor button via the configured CSS
-	 * selector -- this way the state-code badge and layout are never at the
-	 * mercy of an unknown theme's fixed-width/overflow CSS.
+	 * selector -- this way its layout is never at the mercy of an unknown
+	 * theme's fixed-width/overflow CSS.
 	 *
-	 * Starts pointing nowhere. JS fills in the href and state badge once a
-	 * location is known (auto-detected or manually picked); until then,
-	 * clicking it opens the location popup instead of navigating.
+	 * Renders two separate, independently-clickable elements rather than one
+	 * combined string: a small "state" pill showing the current location
+	 * (click to change it, same as [rlr_change_location]) and the actual
+	 * Order Now button. Both start inert. JS fills in the state pill's text
+	 * and the button's href once a location is known (auto-detected or
+	 * manually picked); until then, clicking the button opens the location
+	 * popup instead of navigating.
 	 *
 	 * @param array $atts Shortcode attributes.
 	 * @return string
@@ -159,10 +163,15 @@ class RLR_Public {
 
 		$classes = trim( 'rlr-order-button ' . $atts['class'] );
 
-		return sprintf(
-			'<a href="#" class="%s" data-rlr-order-button="1"><span class="rlr-order-button-text">%s</span></a>',
-			esc_attr( $classes ),
-			esc_html( $atts['text'] )
-		);
+		return '<span class="rlr-order-group">'
+			. '<button type="button" class="rlr-order-state" data-rlr-change-location="1">'
+			. '<span class="rlr-order-state-label" data-rlr-current-location-code>' . esc_html__( 'Select Location', 'restaurant-location-redirect' ) . '</span>'
+			. '</button>'
+			. sprintf(
+				'<a href="#" class="%s" data-rlr-order-button="1"><span class="rlr-order-button-text">%s</span></a>',
+				esc_attr( $classes ),
+				esc_html( $atts['text'] )
+			)
+			. '</span>';
 	}
 }
